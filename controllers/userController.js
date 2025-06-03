@@ -61,6 +61,7 @@ exports.getRecommendations = async (req, res) => {
         "User not found, returning default recommendations",
         {
           topGenre: 18, // Drama
+          topGenreName: getGenreNameById(18),
           genreScores: defaultGenreScores,
         }
       );
@@ -96,9 +97,11 @@ exports.getRecommendations = async (req, res) => {
       }));
 
     const topGenre = sortedGenres.length > 0 ? sortedGenres[0].genreID : 18;
+    const topGenreName = getGenreNameById(topGenre);
 
     return successResponse(res, "Recommendations generated", {
       topGenre,
+      topGenreName,
       genreScores: sortedGenres,
     });
   } catch (err) {
