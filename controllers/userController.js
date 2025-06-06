@@ -1,4 +1,7 @@
 require("dotenv").config();
+require("../extensions/Array+shuffle.js");
+const { genresList } = require("../common/appConstants");
+const { getGenreNameById } = require("../common/common");
 const User = require("../models/userModel");
 const { successResponse, errorResponse } = require("../utils/response");
 
@@ -88,108 +91,28 @@ exports.getRecommendations = async (req, res) => {
       if (genreCount[genre] <= 0) delete genreCount[genre];
     }
 
-    const sortedGenres = Object.entries(genreCount)
-      .sort((a, b) => b[1] - a[1])
-      .map(([genreID, score]) => ({
-        genreID: Number(genreID),
-        genre: getGenreNameById(Number(genreID)),
-        score,
-      }));
+    const genreScores = Object.entries(genreCount).map(([genreID, score]) => ({
+      genreID: Number(genreID),
+      genre: getGenreNameById(Number(genreID)),
+      score,
+    }));
 
-    const topGenre = sortedGenres.length > 0 ? sortedGenres[0].genreID : 18;
+    const topGenreEntry = genreScores.reduce(
+      (max, current) =>
+        current.score > (max?.score ?? -Infinity) ? current : max,
+      null
+    );
+
+    const topGenre = topGenreEntry ? topGenreEntry.genreID : 18;
     const topGenreName = getGenreNameById(topGenre);
 
     return successResponse(res, "Recommendations generated", {
       topGenre,
       topGenreName,
-      genreScores: sortedGenres,
+      genreScores: genreScores.shuffle(),
     });
   } catch (err) {
     console.error(err);
     return errorResponse(res, "Server error");
   }
 };
-
-let genresList = [
-  {
-    id: 28,
-    name: "Action",
-  },
-  {
-    id: 12,
-    name: "Adventure",
-  },
-  {
-    id: 16,
-    name: "Animation",
-  },
-  {
-    id: 35,
-    name: "Comedy",
-  },
-  {
-    id: 80,
-    name: "Crime",
-  },
-  {
-    id: 99,
-    name: "Documentary",
-  },
-  {
-    id: 18,
-    name: "Drama",
-  },
-  {
-    id: 10751,
-    name: "Family",
-  },
-  {
-    id: 14,
-    name: "Fantasy",
-  },
-  {
-    id: 36,
-    name: "History",
-  },
-  {
-    id: 27,
-    name: "Horror",
-  },
-  {
-    id: 10402,
-    name: "Music",
-  },
-  {
-    id: 9648,
-    name: "Mystery",
-  },
-  {
-    id: 10749,
-    name: "Romance",
-  },
-  {
-    id: 878,
-    name: "Science Fiction",
-  },
-  {
-    id: 10770,
-    name: "TV Movie",
-  },
-  {
-    id: 53,
-    name: "Thriller",
-  },
-  {
-    id: 10752,
-    name: "War",
-  },
-  {
-    id: 37,
-    name: "Western",
-  },
-];
-
-function getGenreNameById(id) {
-  const genre = genresList.find((g) => g.id === id);
-  return genre ? genre.name : "Drama";
-}
