@@ -1,5 +1,4 @@
 require("dotenv").config();
-require("../extensions/Array+shuffle.js");
 const { genresList } = require("../common/appConstants");
 const { getGenreNameById } = require("../common/common");
 const User = require("../models/userModel");
@@ -91,25 +90,21 @@ exports.getRecommendations = async (req, res) => {
       if (genreCount[genre] <= 0) delete genreCount[genre];
     }
 
-    const genreScores = Object.entries(genreCount).map(([genreID, score]) => ({
-      genreID: Number(genreID),
-      genre: getGenreNameById(Number(genreID)),
-      score,
-    }));
+    const sortedGenres = Object.entries(genreCount)
+      .sort((a, b) => b[1] - a[1])
+      .map(([genreID, score]) => ({
+        genreID: Number(genreID),
+        genre: getGenreNameById(Number(genreID)),
+        score,
+      }));
 
-    const topGenreEntry = genreScores.reduce(
-      (max, current) =>
-        current.score > (max?.score ?? -Infinity) ? current : max,
-      null
-    );
-
-    const topGenre = topGenreEntry ? topGenreEntry.genreID : 18;
+    const topGenre = sortedGenres.length > 0 ? sortedGenres[0].genreID : 18;
     const topGenreName = getGenreNameById(topGenre);
 
     return successResponse(res, "Recommendations generated", {
       topGenre,
       topGenreName,
-      genreScores: genreScores.shuffle(),
+      genreScores: sortedGenres,
     });
   } catch (err) {
     console.error(err);
