@@ -1,19 +1,13 @@
 require("dotenv").config();
-const { genresList } = require("../common/appConstants");
-const { getGenreNameById } = require("../common/common");
+const { genresList, ActionWeights, Action } = require("../common/appConstants");
+const { getGenreNameById, getWeightAction } = require("../common/common");
 const User = require("../models/userModel");
 const { successResponse, errorResponse } = require("../utils/response");
 
 exports.trackUserAction = async (req, res) => {
   const { email, movie_id, action, genres = [] } = req.body;
 
-  const validActions = [
-    "click",
-    "watch",
-    "add_to_watchlist",
-    "remove_from_watchlist",
-  ];
-  if (!validActions.includes(action))
+  if (!Object.values(Action).includes(action))
     return errorResponse(res, `Invalid action ${action}`, 400);
 
   const validGenreIDs = genresList.map((g) => g.id);
@@ -74,12 +68,7 @@ exports.getRecommendations = async (req, res) => {
     for (const entry of user.tracking) {
       const { action, genres = [] } = entry;
 
-      let weight = 0;
-      if (action === "watch") weight = 3;
-      else if (action === "add_to_watchlist") weight = 2;
-      else if (action === "remove_from_watchlist") weight = -2;
-      else if (action === "click") weight = 1;
-      else continue;
+      let weight = getWeightAction(action);
 
       for (const genre of genres) {
         genreCount[genre] = (genreCount[genre] || 0) + weight;

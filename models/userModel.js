@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { Action } = require("../common/appConstants");
 
 const UserSchema = new mongoose.Schema({
   email: {
@@ -14,7 +15,7 @@ const UserSchema = new mongoose.Schema({
       },
       action: {
         type: String,
-        enum: ["click", "watch", "add_to_watchlist", "remove_from_watchlist"],
+        enum: Object.values(Action),
         required: true,
       },
       timestamp: {

@@ -1,8 +1,12 @@
-const { genresList } = require("../common/appConstants");
+const { genresList, ActionWeights } = require("../common/appConstants");
 
 function getGenreNameById(id) {
   const genre = genresList.find((g) => g.id === id);
   return genre ? genre.name : "Drama";
 }
 
-module.exports = { getGenreNameById };
+function getWeightAction(action) {
+  return ActionWeights[action] ?? 0;
+}
+
+module.exports = { getGenreNameById, getWeightAction };
